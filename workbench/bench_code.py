@@ -40,24 +40,54 @@ def load_model_class_from_module(module_path, class_name):
     return model
 
 
+def add_all(inputs):
+    # return add inputs
+    return None
+
+
+def gen_meta_subgraph(input_, depth=5, subnet_num=20, subnet_size=5, connection_num=30):
+    subG = [[] for _ in range(depth)]
+    # 0's layer for input_
+    subG[0] += [input_]
+
+    import random
+
+    # set sub_net at layer
+    for i in range(subnet_num):
+        layer_num = random.randint(1, depth)
+        subG[layer_num] += [i]
+    print(subG)
+
+    # connect sub_net
+    # for i in range(connection_num):
+    #     # select random start, end vertex
+    #     start_layer = random.randint(1, depth - 1)
+    #     end_layer = random.randint(start_layer + 1, depth)
+    #     assert (start_layer < end_layer)
+    #     start_v_num = random.randint
+    #
+    #     # connect
+
+
 def main():
-    import env_settting
-    env_settting.tensorboard_dir()
-
-    # dataset, input_shapes = cifar10Helper.load_dataset(limit=1000)
-    # dataset, input_shapes = MNISTHelper.load_dataset(limit=1000)
-    # dataset, input_shapes = cifar100Helper.load_dataset(limit=1000)
-    # dataset, input_shapes = fashion_MNISTHelper.load_dataset(limit=1000)
-    # dataset, input_shapes = LLD_helper.load_dataset(limit=1000)
-
-    dataset, input_shapes = MNISTHelper.load_dataset(limit=1000)
-    visualizers = [(image_tile, 40), (image_tile_data, 100), (print_GAN_loss, 10), (print_D_value, 10)]
-    model = load_model_class_from_module(MODEL_MODULE_PATH, 'GAN')
-    InstanceManagerHelper.gen_model_and_train(model=model,
-                                              input_shapes=input_shapes,
-                                              visualizers=visualizers,
-                                              env_path=ROOT_PATH,
-                                              dataset=dataset,
-                                              epoch_time=5)
+    gen_meta_subgraph(None)
 
 
+    # import env_settting
+    # env_settting.tensorboard_dir()
+    #
+    # # dataset, input_shapes = cifar10Helper.load_dataset(limit=1000)
+    # # dataset, input_shapes = MNISTHelper.load_dataset(limit=1000)
+    # # dataset, input_shapes = cifar100Helper.load_dataset(limit=1000)
+    # # dataset, input_shapes = fashion_MNISTHelper.load_dataset(limit=1000)
+    # # dataset, input_shapes = LLD_helper.load_dataset(limit=1000)
+    #
+    # dataset, input_shapes = MNISTHelper.load_dataset()
+    # visualizers = [(print_classifier_loss, 10), (print_confusion_matrix, 50)]
+    # model = load_model_class_from_module(MODEL_MODULE_PATH, 'Classifier')
+    # InstanceManagerHelper.gen_model_and_train(model=model,
+    #                                           input_shapes=input_shapes,
+    #                                           visualizers=visualizers,
+    #                                           env_path=ROOT_PATH,
+    #                                           dataset=dataset,
+    #                                           epoch_time=5)
