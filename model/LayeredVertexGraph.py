@@ -73,18 +73,112 @@ class LayeredGraph:
     def add_vertex(self, vertex):
         self.G += [vertex]
 
+    def from_vertexs(self, vertex_id):
+        return [self.G[vertex_id] for vertex_id in self.G[vertex_id].from_]
 
-def gen_tensor_G(input_, v_net, layerGraph):
-    for v in layerGraph.G:
-        if v.layer == 0:
-            # all first layer vertex connect to input_
-            v.tensor = v.net(input_)
-            print(v)
-        else:
-            # other layer collect from vertex, assign v_
-            froms = v.from_
 
+def merge_add(inputs, name="merge_add"):
+    with tf.variable_scope(name):
+        merged = None
+
+        for input_ in inputs:
+            if merged is None:
+                merged = input_
+            else:
+                merged = tf.add(merged, input_)
+        return merged
+
+
+def layeredVertexBlock1(input_, tensor_op, layerGraph, name="layeredVertexBlock", output_size=10):
+    op = tensor_op
+
+    with tf.variable_scope(name):
+        for v in layerGraph.G:
             print(v)
+            with tf.variable_scope("vertex" + str(v.id_)):
+                if len(v.from_) == 0:
+                    # all first layer vertex connect to input_
+                    v.tensor = linear(input_, output_size)
+                    print(v.tensor)
+                else:
+                    # other layer collect from vertex, assign v_
+                    from_vertexs = layerGraph.from_vertexs(v.id_)
+                    assigns = []
+                    for vertex in from_vertexs:
+                        assign = linear(vertex.tensor, output_size, name="from_assign" + str(vertex.id_))
+                        assigns += [assign]
+
+                    for assign in assigns:
+                        print(assign)
+                    v.tensor = merge_add(assigns)
+                    print(v)
+
+        with tf.variable_scope("merge_concat"):
+            out = tf.concat([vertex.tensor for vertex in layerGraph.G], axis=1)
+            print(out)
+
+    return out
+
+
+def layeredVertexBlock2(input_, tensor_op, layerGraph, name="layeredVertexBlock", output_size=10):
+    # all vertex in and out
+    op = tensor_op
+
+    with tf.variable_scope(name):
+        for v in layerGraph.G:
+            print(v)
+            with tf.variable_scope("vertex" + str(v.id_)):
+                # all first layer vertex connect to input_
+                assigns = [linear(input_, output_size)]
+
+                # other layer collect from vertex, assign v_
+                from_vertexs = layerGraph.from_vertexs(v.id_)
+                for vertex in from_vertexs:
+                    assign = linear(vertex.tensor, output_size, name="from_assign" + str(vertex.id_))
+                    assigns += [assign]
+
+                for assign in assigns:
+                    print(assign)
+                v.tensor = merge_add(assigns)
+                print(v)
+
+        with tf.variable_scope("merge_concat"):
+            out = tf.concat([vertex.tensor for vertex in layerGraph.G], axis=1)
+            print(out)
+
+    return out
+
+
+def layeredVertexBlock3(input_, tensor_op, layerGraph, name="layeredVertexBlock", output_size=10):
+    # all vertex in and out
+    # and conv
+    op = tensor_op
+
+    # net, output_channel, filter_, activate, name = 'conv_block'):
+    with tf.variable_scope(name):
+        for v in layerGraph.G:
+            print(v)
+            with tf.variable_scope("vertex" + str(v.id_)):
+                # all first layer vertex connect to input_
+                assigns = [conv_block(input_, output_size, filter_3311, relu)]
+
+                # other layer collect from vertex, assign v_
+                from_vertexs = layerGraph.from_vertexs(v.id_)
+                for vertex in from_vertexs:
+                    assign = conv_block(vertex.tensor, output_size, filter_3311, relu,
+                                        name="from_assign" + str(vertex.id_))
+                    assigns += [assign]
+
+                for assign in assigns:
+                    print(assign)
+                v.tensor = merge_add(assigns)
+                print(v)
+
+        with tf.variable_scope("merge_concat"):
+            out = tf.concat([vertex.tensor for vertex in layerGraph.G], axis=1)
+            print(out)
+
+    return out
 
 
 class LayeredVertexGraph(AbstractModel):
@@ -119,15 +213,47 @@ class LayeredVertexGraph(AbstractModel):
         self.label_shape = input_shapes[INPUT_SHAPE_KEY_LABEL]
         self.label_size = input_shapes[INPUT_SHAPE_KEY_LABEL_SIZE]
 
-    def CNN(self, input_):
+    def classifier(self, input_):
+
         with tf.variable_scope('classifier'):
-            seq = SequenceModel(input_, name='seq1')
+            seq = SequenceModel(input_)
 
-            merge = tf.concat([seq.last_layer], axis=1)
-            after_merge = SequenceModel(merge, name='after_merge')
-            after_merge.add_layer(linear, self.label_size)
+            # seq.add_layer(tf.reshape, [self.batch_size, -1])
 
-            logit = after_merge.last_layer
+            layeredGraph = LayeredGraph()
+            output_size = 40
+            depth = 5
+            vertexs_size = depth * 10
+            connection_size = int(vertexs_size * 2)
+            layeredGraph.gen_graph(depth=depth, vertexs_size=vertexs_size, connection_size=connection_size)
+            for v in layeredGraph.G:
+                print(v)
+            seq.add_layer(layeredVertexBlock3, None, layeredGraph, output_size=output_size)
+            seq.add_layer(tf.reshape, [self.batch_size, -1])
+
+            # layeredGraph = LayeredGraph()
+            # output_size = 20
+            # depth = 5
+            # vertexs_size = 48
+            # connection_size = int(vertexs_size * 2)
+            # layeredGraph.gen_graph(depth=depth, vertexs_size=vertexs_size, connection_size=connection_size)
+            # for v in layeredGraph.G:
+            #     print(v)
+            # seq.add_layer(layeredVertexBlock2, None, layeredGraph, output_size=output_size)
+            #
+            #
+            # layeredGraph = LayeredGraph()
+            # output_size = 10
+            # depth = 5
+            # vertexs_size = 48
+            # connection_size = int(vertexs_size * 2)
+            # layeredGraph.gen_graph(depth=depth, vertexs_size=vertexs_size, connection_size=connection_size)
+            # for v in layeredGraph.G:
+            #     print(v)
+            # seq.add_layer(layeredVertexBlock2, None, layeredGraph, output_size=output_size)
+
+            seq.add_layer(linear, self.label_size)
+            logit = seq.last_layer
             h = softmax(logit)
 
         return logit, h
@@ -136,7 +262,7 @@ class LayeredVertexGraph(AbstractModel):
         self.X = tf.placeholder(tf.float32, [self.batch_size] + self.shape_data_x, name='X')
         self.label = tf.placeholder(tf.float32, [self.batch_size] + self.label_shape, name='label')
 
-        self.logit, self.h = self.CNN(self.X)
+        self.logit, self.h = self.classifier(self.X)
 
         self.predict_index = tf.cast(tf.argmax(self.h, 1, name="predicted_label"), tf.float32)
         self.label_index = onehot_to_index(self.label)
@@ -167,13 +293,15 @@ class LayeredVertexGraph(AbstractModel):
         sess.run([self.op_inc_global_step])
 
     def summary_op(self):
-        summary_variable(self.loss)
+        pass
+        summary_loss(self.loss)
+        summary_variable_mean(self.batch_acc, "test_acc")
 
         self.op_merge_summary = tf.summary.merge_all()
 
     def write_summary(self, sess=None, iter_num=None, dataset=None, summary_writer=None):
         batch_xs, batch_labels = dataset.next_batch(self.batch_size,
-                                                    batch_keys=[BATCH_KEY_TRAIN_X, BATCH_KEY_TRAIN_LABEL])
+                                                    batch_keys=[BATCH_KEY_TEST_X, BATCH_KEY_TEST_LABEL])
         summary, global_step = sess.run([self.op_merge_summary, self.global_step],
                                         feed_dict={self.X: batch_xs, self.label: batch_labels})
         summary_writer.add_summary(summary, global_step)
