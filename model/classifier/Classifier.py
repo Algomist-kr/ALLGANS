@@ -15,20 +15,20 @@ def inception_layer(input_, channel_size, name='inception_layer'):
 
         with tf.variable_scope('out2'):
             seq = SequenceModel(input_)
-            seq.add_layer(conv_block, channel_size, filter_5511, lrelu)
+            seq.add_layer(conv_block, channel_size, filter_3311, lrelu)
             out2 = seq.last_layer
 
         with tf.variable_scope('out3'):
             seq = SequenceModel(input_)
-            seq.add_layer(conv_block, channel_size, filter_5511, lrelu)
-            seq.add_layer(conv_block, channel_size, filter_5511, relu)
+            seq.add_layer(conv_block, channel_size, filter_3311, lrelu)
+            seq.add_layer(conv_block, channel_size, filter_3311, relu)
             out3 = seq.last_layer
 
         with tf.variable_scope('out4'):
             seq = SequenceModel(input_)
-            seq.add_layer(conv_block, channel_size, filter_5511, lrelu)
-            seq.add_layer(conv_block, channel_size, filter_5511, lrelu)
-            seq.add_layer(conv_block, channel_size, filter_5511, lrelu)
+            seq.add_layer(conv_block, channel_size, filter_3311, lrelu)
+            seq.add_layer(conv_block, channel_size, filter_3311, lrelu)
+            seq.add_layer(conv_block, channel_size, filter_3311, lrelu)
             out4 = seq.last_layer
 
         out = tf.concat([out1, out2 + out3 + out4], 3)

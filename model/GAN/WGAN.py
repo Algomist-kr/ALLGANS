@@ -26,11 +26,11 @@ class WGAN(AbstractGANModel):
 
             seq.add_layer(conv2d_transpose, [self.batch_size, 8, 8, 256], filter_5522)
             seq.add_layer(bn)
-            seq.add_layer(relu)
+            seq.add_layer(lrelu)
 
             seq.add_layer(conv2d_transpose, [self.batch_size, 16, 16, 128], filter_5522)
             seq.add_layer(bn)
-            seq.add_layer(relu)
+            seq.add_layer(lrelu)
 
             seq.add_layer(conv2d_transpose, [self.batch_size, 32, 32, self.input_c], filter_5522)
             seq.add_layer(conv2d, self.input_c, filter_5511)
@@ -105,9 +105,6 @@ class WGAN(AbstractGANModel):
             self.GD_rate = tf.div(tf.reduce_mean(self.loss_G), tf.reduce_mean(self.loss_D))
 
     def train_model(self, sess=None, iter_num=None, dataset=None):
-        self.normal_train(sess, iter_num, dataset)
-
-    def normal_train(self, sess, iter_num, dataset):
         noise = self.get_noise()
         batch_xs = dataset.next_batch(self.batch_size, batch_keys=[BATCH_KEY_TRAIN_X])
         sess.run([self.train_D, self.clip_D_op], feed_dict={self.X: batch_xs, self.z: noise})
@@ -117,31 +114,12 @@ class WGAN(AbstractGANModel):
 
         sess.run([self.op_inc_global_step])
 
-    def adapted_train(self, sess, iter_num=None, dataset=None):
-        noise = self.get_noise()
-        batch_xs = dataset.next_batch(self.batch_size, batch_keys=[BATCH_KEY_TRAIN_X])
-
-        self.adapted_train_rate = 0.1
-        GD_rate = sess.run(self.GD_rate, feed_dict={self.X: batch_xs, self.z: noise})
-        if -GD_rate > self.adapted_train_rate:
-            sess.run(self.train_G, feed_dict={self.z: noise})
-        else:
-            sess.run([self.train_D, self.clip_D_op], feed_dict={self.X: batch_xs, self.z: noise})
-            sess.run(self.train_G, feed_dict={self.z: noise})
-
     def summary_op(self):
-        # for var in self.vars_G:
-        #     self.__class__.summary_variable(var)
-        #
-        # for var in self.vars_D:
-        #     self.__class__.summary_variable(var)
+        summary_loss(self.loss_D_gen)
+        summary_loss(self.loss_D_real)
+        summary_loss(self.loss_D)
+        summary_loss(self.loss_G)
 
-        summary_variable(self.loss_D_gen)
-        summary_variable(self.loss_D_real)
-        summary_variable(self.loss_D)
-        summary_variable(self.loss_G)
-
-        # self.__class__.summary_image(self.G, max_outputs=self.batch_size)
         self.op_merge_summary = tf.summary.merge_all()
 
     def write_summary(self, sess=None, iter_num=None, dataset=None, summary_writer=None):

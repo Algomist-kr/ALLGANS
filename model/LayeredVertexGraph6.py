@@ -84,66 +84,6 @@ def merge_add(inputs, name="merge_add"):
         return merged
 
 
-def layeredVertexBlock1(input_, tensor_op, layerGraph, name="layeredVertexBlock", output_size=10):
-    op = tensor_op
-
-    with tf.variable_scope(name):
-        for v in layerGraph.G:
-            print(v)
-            with tf.variable_scope("vertex" + str(v.id_)):
-                if len(v.from_) == 0:
-                    # all first layer vertex connect to input_
-                    v.tensor = linear(input_, output_size)
-                    print(v.tensor)
-                else:
-                    # other layer collect from vertex, assign v_
-                    from_vertexs = layerGraph.from_vertexs(v.id_)
-                    assigns = []
-                    for vertex in from_vertexs:
-                        assign = linear(vertex.tensor, output_size, name="from_assign" + str(vertex.id_))
-                        assigns += [assign]
-
-                    for assign in assigns:
-                        print(assign)
-                    v.tensor = merge_add(assigns)
-                    print(v)
-
-        with tf.variable_scope("merge_concat"):
-            out = tf.concat([vertex.tensor for vertex in layerGraph.G], axis=1)
-            print(out)
-
-    return out
-
-
-def layeredVertexBlock2(input_, tensor_op, layerGraph, name="layeredVertexBlock", output_size=10):
-    # all vertex in and out
-    op = tensor_op
-
-    with tf.variable_scope(name):
-        for v in layerGraph.G:
-            print(v)
-            with tf.variable_scope("vertex" + str(v.id_)):
-                # all first layer vertex connect to input_
-                assigns = [linear(input_, output_size)]
-
-                # other layer collect from vertex, assign v_
-                from_vertexs = layerGraph.from_vertexs(v.id_)
-                for vertex in from_vertexs:
-                    assign = linear(vertex.tensor, output_size, name="from_assign" + str(vertex.id_))
-                    assigns += [assign]
-
-                for assign in assigns:
-                    print(assign)
-                v.tensor = merge_add(assigns)
-                print(v)
-
-        with tf.variable_scope("merge_concat"):
-            out = tf.concat([vertex.tensor for vertex in layerGraph.G], axis=1)
-            print(out)
-
-    return out
-
-
 def layeredVertexBlock3(input_, tensor_op, layerGraph, name="layeredVertexBlock", output_size=10):
     # all vertex in and out
     # and conv
@@ -170,13 +110,13 @@ def layeredVertexBlock3(input_, tensor_op, layerGraph, name="layeredVertexBlock"
                 print(v)
 
         with tf.variable_scope("merge_concat"):
-            out = tf.concat([vertex.tensor for vertex in layerGraph.G], axis=3)
+            out = tf.concat([vertex.tensor for vertex in layerGraph.G], axis=1)
             print(out)
 
     return out
 
 
-class LayeredVertexGraph(AbstractModel):
+class LayeredVertexGraph6(AbstractModel):
     VERSION = 1.0
     AUTHOR = 'demetoir'
 
@@ -217,35 +157,14 @@ class LayeredVertexGraph(AbstractModel):
 
             layeredGraph = LayeredGraph()
             output_size = 20
-            depth = 3
-            vertexs_size = depth * 10
+            depth = 5
+            vertexs_size = depth * 40
             connection_size = int(vertexs_size * 2)
             layeredGraph.gen_graph(depth=depth, vertexs_size=vertexs_size, connection_size=connection_size)
             for v in layeredGraph.G:
                 print(v)
             seq.add_layer(layeredVertexBlock3, None, layeredGraph, output_size=output_size)
             seq.add_layer(tf.reshape, [self.batch_size, -1])
-
-            # layeredGraph = LayeredGraph()
-            # output_size = 20
-            # depth = 5
-            # vertexs_size = 48
-            # connection_size = int(vertexs_size * 2)
-            # layeredGraph.gen_graph(depth=depth, vertexs_size=vertexs_size, connection_size=connection_size)
-            # for v in layeredGraph.G:
-            #     print(v)
-            # seq.add_layer(layeredVertexBlock2, None, layeredGraph, output_size=output_size)
-            #
-            #
-            # layeredGraph = LayeredGraph()
-            # output_size = 10
-            # depth = 5
-            # vertexs_size = 48
-            # connection_size = int(vertexs_size * 2)
-            # layeredGraph.gen_graph(depth=depth, vertexs_size=vertexs_size, connection_size=connection_size)
-            # for v in layeredGraph.G:
-            #     print(v)
-            # seq.add_layer(layeredVertexBlock2, None, layeredGraph, output_size=output_size)
 
             seq.add_layer(linear, self.label_size)
             logit = seq.last_layer
