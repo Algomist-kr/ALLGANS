@@ -50,11 +50,11 @@ class Logger:
     log("logging message")
     log("also", "can use like print",",the build-in function",)
     """
-    FILE_LOGGER_FORMAT = '[%(levelname)s] %(asctime)s> %(message)s'
-    PRINT_LOGGER_FORMAT = '%(asctime)s> %(message)s'
-    NO_FORMAT = ""
+    FILE_LOGGER_FORMAT = '%(asctime)s [%(levelname)s]> %(message)s'
+    STDOUT_LOGGER_FORMAT = '%(asctime)s> %(message)s'
+    EMPTY_FORMAT = ""
 
-    def __init__(self, name, path=None, file_name=None, level='DEBUG', with_file=True, no_format=True):
+    def __init__(self, name, path=None, file_name=None, level='INFO', with_file=True, empty_stdout_format=True):
         """create logger
 
         :param name:name of logger
@@ -64,6 +64,7 @@ class Logger:
         :param with_file: default False
         if std_only is True, log message print only stdout not in logfile
         """
+        self.name = name
         self.logger = logging.getLogger(name + time_stamp())
         self.logger.setLevel('DEBUG')
 
@@ -80,10 +81,10 @@ class Logger:
             self.file_handler.setLevel('DEBUG')
             self.logger.addHandler(self.file_handler)
 
-        if no_format:
-            format_ = self.NO_FORMAT
+        if empty_stdout_format:
+            format_ = self.EMPTY_FORMAT
         else:
-            format_ = self.PRINT_LOGGER_FORMAT
+            format_ = self.STDOUT_LOGGER_FORMAT
         formatter = logging.Formatter(format_)
         self.stream_handler = logging.StreamHandler()
         self.stream_handler.setFormatter(formatter)
@@ -96,6 +97,12 @@ class Logger:
         self._info = deco_args_to_str(getattr(self.logger, 'info'))
         self._debug = deco_args_to_str(getattr(self.logger, 'debug'))
         self._critical = deco_args_to_str(getattr(self.logger, 'critical'))
+
+        self.logger.debug('')
+        self.logger.debug('')
+        self.logger.debug(f'#' * 80)
+        self.logger.debug(f'start logger {name}')
+        self.logger.debug(f'#' * 80)
 
     def __repr__(self):
         return self.__class__.__name__
@@ -145,7 +152,7 @@ class StdoutOnlyLogger(Logger):
         if name is None:
             name = self.__class__.__name__
 
-        super().__init__(name, with_file=False, no_format=True, level=level)
+        super().__init__(name, with_file=False, empty_stdout_format=True, level=level)
 
 
 def pprint_logger(log_func):
