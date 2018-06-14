@@ -1,4 +1,4 @@
-from util.Logger import StdoutOnlyLogger
+from util.Logger import StdoutOnlyLogger, Logger
 from util.misc_util import *
 import traceback
 import sys
@@ -82,7 +82,7 @@ class BaseDataset(metaclass=MetaDataset):
     def downloadInfos(self):
         return []
 
-    def __init__(self):
+    def __init__(self, verbose='WARN'):
         """create dataset handler class
 
         ***bellow attrs must initiate other value after calling super()***
@@ -91,8 +91,8 @@ class BaseDataset(metaclass=MetaDataset):
             managing batch keys in dict_keys.dataset_batch_keys recommend
         """
         self.batch_keys = []
-        self.logger = StdoutOnlyLogger(self.__class__.__name__)
-        self.log = self.logger.get_log()
+        self.logger = Logger(self.__class__.__name__, level=verbose)
+        self.log = self.logger
         self.data = {}
         self.cursor = 0
         self.data_size = 0
@@ -172,11 +172,11 @@ class BaseDataset(metaclass=MetaDataset):
         head, _ = os.path.split(path)
         download_file = os.path.join(path, downloadInfos.download_file_name)
 
-        self.log('download %s at %s ' % (downloadInfos.download_file_name, download_file))
+        self.log.info('download %s at %s ' % (downloadInfos.download_file_name, download_file))
         download_from_url(downloadInfos.url, download_file)
 
         if downloadInfos.is_zipped:
-            self.log("extract %s at %s" % (downloadInfos.download_file_name, path))
+            self.log.info("extract %s at %s" % (downloadInfos.download_file_name, path))
             extract_file(download_file, path)
 
     def after_load(self, limit=None):
@@ -196,20 +196,20 @@ class BaseDataset(metaclass=MetaDataset):
 
         for key in self.data:
             self.data_size = max(len(self.data[key]), self.data_size)
-            self.log("batch data '%s' %d item(s) loaded" % (key, len(self.data[key])))
+            self.log.debug("batch data '%s' %d item(s) loaded" % (key, len(self.data[key])))
 
         self.data['id_'] = np.array([i for i in range(1, self.data_size + 1)])
 
-        self.log('%s fully loaded' % self.__str__())
+        self.log.debug('%s fully loaded' % self.__str__())
 
-        self.log('%s preprocess end' % self.__str__())
+        self.log.debug('%s preprocess end' % self.__str__())
         self.preprocess()
 
-        self.log("generate input_shapes")
+        self.log.debug("generate input_shapes")
         self.input_shapes = {}
         for key in self.data:
             self.input_shapes[key] = list(self.data[key].shape[1:])
-            self.log("key=%s, shape=%s" % (key, self.input_shapes[key]))
+            self.log.debug("key=%s, shape=%s" % (key, self.input_shapes[key]))
 
     def load(self, path, limit=None):
         """load dataset from file should implement
