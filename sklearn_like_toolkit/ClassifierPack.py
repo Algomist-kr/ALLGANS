@@ -1,23 +1,41 @@
 import os
 from pprint import pformat
 from env_settting import SKLEARN_PARAMS_SAVE_PATH
-from sklearn_like_toolkit.ParamOptimizer import ParamOptimizer
 from sklearn_like_toolkit.Base import BaseClass
+from sklearn_like_toolkit.FoldingHardVote import FoldingHardVote
+from sklearn_like_toolkit.ParamOptimizer import ParamOptimizer
+from sklearn_like_toolkit.base._base import _Reformat_Ys, _clf_metric
 from sklearn_like_toolkit.warpper.catboost_wrapper import CatBoostClf
 from sklearn_like_toolkit.warpper.lightGBM_wrapper import LightGBMClf
-from sklearn_like_toolkit.warpper.mlxtend_wrapper import mlxAdalineClf, mlxLogisticRegressionClf, \
-    mlxMLPClf, mlxPerceptronClf, mlxSoftmaxRegressionClf, mlxStackingCVClf, mlxStackingClf
-from sklearn_like_toolkit.warpper.sklearn_wrapper import skMLP, skSGD, skGaussian_NB, skBernoulli_NB, skMultinomial_NB, \
-    skDecisionTree, skRandomForest, skExtraTrees, skAdaBoost, skGradientBoosting, skQDA, skKNeighbors, skLinear_SVC, \
-    skRBF_SVM, skGaussianProcess, skVoting, skBagging
+from sklearn_like_toolkit.warpper.mlxtend_wrapper import mlxAdalineClf
+from sklearn_like_toolkit.warpper.mlxtend_wrapper import mlxLogisticRegressionClf
+from sklearn_like_toolkit.warpper.mlxtend_wrapper import mlxMLPClf
+from sklearn_like_toolkit.warpper.mlxtend_wrapper import mlxPerceptronClf
+from sklearn_like_toolkit.warpper.mlxtend_wrapper import mlxSoftmaxRegressionClf
+from sklearn_like_toolkit.warpper.mlxtend_wrapper import mlxStackingCVClf
+from sklearn_like_toolkit.warpper.mlxtend_wrapper import mlxStackingClf
+from sklearn_like_toolkit.warpper.sklearn_wrapper import skMLP
+from sklearn_like_toolkit.warpper.sklearn_wrapper import skLinear_SVC
+from sklearn_like_toolkit.warpper.sklearn_wrapper import skSGD
+from sklearn_like_toolkit.warpper.sklearn_wrapper import skGaussian_NB
+from sklearn_like_toolkit.warpper.sklearn_wrapper import skBernoulli_NB
+from sklearn_like_toolkit.warpper.sklearn_wrapper import skMultinomial_NB
+from sklearn_like_toolkit.warpper.sklearn_wrapper import skDecisionTree
+from sklearn_like_toolkit.warpper.sklearn_wrapper import skRandomForest
+from sklearn_like_toolkit.warpper.sklearn_wrapper import skExtraTrees
+from sklearn_like_toolkit.warpper.sklearn_wrapper import skAdaBoost
+from sklearn_like_toolkit.warpper.sklearn_wrapper import skGradientBoosting
+from sklearn_like_toolkit.warpper.sklearn_wrapper import skQDA
+from sklearn_like_toolkit.warpper.sklearn_wrapper import skKNeighbors
+from sklearn_like_toolkit.warpper.sklearn_wrapper import skGaussianProcess
+from sklearn_like_toolkit.warpper.sklearn_wrapper import skRBF_SVM
+from sklearn_like_toolkit.warpper.sklearn_wrapper import skBagging
 from sklearn_like_toolkit.warpper.xgboost_wrapper import XGBoostClf
 from util.Logger import Logger
 from util.misc_util import time_stamp, dump_pickle, load_pickle
 
 
-# 'mlxStackingCVClf': mlxStackingCVClf,
-# 'mlxStackingClf': mlxStackingClf
-class ClassifierPack(BaseClass):
+class ClassifierPack(BaseClass, _Reformat_Ys, _clf_metric):
     class_pack = {
         "skMLP": skMLP,
         "skSGD": skSGD,
@@ -46,6 +64,7 @@ class ClassifierPack(BaseClass):
     }
 
     def __init__(self, pack_keys=None):
+        super().__init__()
         self.log = Logger(self.__class__.__name__)
         if pack_keys is None:
             pack_keys = self.class_pack.keys()
@@ -59,6 +78,7 @@ class ClassifierPack(BaseClass):
         self.params_save_path = SKLEARN_PARAMS_SAVE_PATH
 
     def param_search(self, Xs, Ys):
+        Ys = self._reformat_to_index(Ys)
         for key in self.pack:
             cls = self.class_pack[key]
             obj = cls()
@@ -73,7 +93,7 @@ class ClassifierPack(BaseClass):
             for result in optimizer.top_k_result():
                 self.log.info(pformat(result))
 
-    def predict(self, Xs):
+    def _collect_predict(self, Xs):
         result = {}
         for key in self.pack:
             try:
@@ -82,22 +102,30 @@ class ClassifierPack(BaseClass):
                 self.log.warn(f'while fitting, {key} raise {e}')
         return result
 
+    def predict(self, Xs):
+        return self._collect_predict(Xs)
+
     def fit(self, Xs, Ys):
+        Ys = self._reformat_to_index(Ys)
         for key in self.pack:
             try:
                 self.pack[key].fit(Xs, Ys)
             except BaseException as e:
                 self.log.warn(f'while fitting, {key} raise {e}')
 
-    def score(self, Xs, Ys):
-        result = {}
-        for key in self.pack:
-            try:
-                result[key] = self.pack[key].score(Xs, Ys)
-            except BaseException as e:
-                self.log.warn(f'while score, {key} raise {e}')
+    def score(self, Xs, Ys, metric='accuracy'):
+        Ys = self._reformat_to_index(Ys)
+        scores = {}
+        for clf_k, predict in self._collect_predict(Xs).items():
+            scores[clf_k] = self._apply_metric(Ys, predict, metric)
+        return scores
 
-        return result
+    def score_pack(self, Xs, Ys):
+        Ys = self._reformat_to_index(Ys)
+        ret = {}
+        for clf_k, predict in self._collect_predict(Xs).items():
+            ret[clf_k] = self._apply_metric_pack(Ys, predict)
+        return ret
 
     def predict_proba(self, Xs):
         result = {}
@@ -139,11 +167,22 @@ class ClassifierPack(BaseClass):
 
         self.import_params(params)
 
-    def make_voting_clf(self, voting):
-        return skVoting([(k, v) for k, v in self.pack.items()], voting=voting)
+    def make_FoldingHardVote(self):
+        clfs = [v for k, v in self.pack.items()]
+        return FoldingHardVote(clfs)
+
+    def make_stackingClf(self, meta_clf):
+        clfs = [clf for k, clf in self.pack.items() if hasattr(clf, 'get_params')]
+        return mlxStackingClf(clfs, meta_clf)
+
+    def make_stackingCVClf(self, meta_clf):
+        clfs = [clf for k, clf in self.pack.items() if hasattr(clf, 'get_params')]
+        return mlxStackingCVClf(clfs, meta_clf)
 
     def clone_top_k_tuned(self, k=5):
+        new_pack = {}
         for key in self.pack:
+            new_pack[key] = self.pack[key]
             results = self.optimize_result[key][1:k]
 
             for i, result in enumerate(results):
@@ -151,9 +190,10 @@ class ClassifierPack(BaseClass):
                 cls = self.pack[key].__class__
                 new_key = str(cls.__name__) + '_' + str(i + 1)
                 clf = cls(**param)
-                self.pack[new_key] = clf
+                new_pack[new_key] = clf
 
-            return self.pack
+        self.pack = new_pack
+        return self.pack
 
     def drop_clf(self, key):
         self.pack.pop(key)
@@ -167,8 +207,3 @@ class ClassifierPack(BaseClass):
     def clone_clf(self, key, n=1, param=None):
         if key not in self.pack:
             raise KeyError(f"key '{key}' not exist")
-
-        # check_origin()
-        #
-        # for i in range(n):
-        #     clone()

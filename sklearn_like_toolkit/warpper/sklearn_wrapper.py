@@ -1,3 +1,5 @@
+import warnings
+
 from sklearn.gaussian_process.kernels import RBF as _RBF
 from sklearn.linear_model.stochastic_gradient import DEFAULT_EPSILON
 from sklearn.neural_network import MLPClassifier as _skMLPClassifier
@@ -131,6 +133,10 @@ class skMultinomial_NB(_skMultinomialNB):
 
 
 class skQDA(_skQDA):
+    def __init__(self, priors=None, reg_param=0., store_covariance=False, tol=1.0e-4, store_covariances=None):
+        warnings.filterwarnings(module='sklearn*', action='ignore', category=Warning)
+        super().__init__(priors, reg_param, store_covariance, tol, store_covariances)
+
     model_Ys_type = NP_ARRAY_TYPE_INDEX
     tuning_grid = {
 
@@ -576,6 +582,10 @@ class skRBF_SVM(_skSVC):
 
 class skVoting(_skVotingClassifier):
     model_Ys_type = NP_ARRAY_TYPE_INDEX
+    tuning_grid = {
+    }
+    tuning_params = {
+    }
 
     def __init__(self, estimators, voting='hard', weights=None, n_jobs=1, flatten_transform=None):
         super().__init__(estimators, voting, weights, n_jobs, flatten_transform)
@@ -591,6 +601,10 @@ class skVoting(_skVotingClassifier):
 
 class skBagging(_BaggingClassifier):
     model_Ys_type = NP_ARRAY_TYPE_INDEX
+    tuning_grid = {
+    }
+    tuning_params = {
+    }
 
     def __init__(self, base_estimator=None, n_estimators=10, max_samples=1.0, max_features=1.0, bootstrap=True,
                  bootstrap_features=False, oob_score=False, warm_start=False, n_jobs=1, random_state=None, verbose=0):
