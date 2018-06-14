@@ -1,4 +1,4 @@
-from util.Logger import StdoutOnlyLogger, Logger
+from util.Logger import Logger
 from util.misc_util import *
 import traceback
 import sys
@@ -82,7 +82,7 @@ class BaseDataset(metaclass=MetaDataset):
     def downloadInfos(self):
         return []
 
-    def __init__(self, verbose='WARN'):
+    def __init__(self, verbose='WARN', logger=None):
         """create dataset handler class
 
         ***bellow attrs must initiate other value after calling super()***
@@ -91,16 +91,26 @@ class BaseDataset(metaclass=MetaDataset):
             managing batch keys in dict_keys.dataset_batch_keys recommend
         """
         self.batch_keys = []
-        self.logger = Logger(self.__class__.__name__, level=verbose)
-        self.log = self.logger
+
+        self.verbose = verbose
+        if logger is None:
+            self.logger = Logger(self.__class__.__name__, level=verbose)
+            self.log = self.logger
+            self.external_logger = False
+        else:
+            self.logger = logger
+            self.log = self.logger
+            self.external_logger = True
+
         self.data = {}
         self.cursor = 0
         self.data_size = 0
         self.input_shapes = None
 
     def __del__(self):
-        del self.logger
-        del self.log
+        if not self.external_logger:
+            del self.logger
+            del self.log
 
     def __repr__(self):
         return self.__class__.__name__
@@ -305,8 +315,8 @@ class BaseDataset(metaclass=MetaDataset):
 
     def split(self, ratio, shuffle=False):
         """return split part of dataset"""
-        a_set = self.__class__()
-        b_set = self.__class__()
+        a_set = self._clone()
+        b_set = self._clone()
         a_set.input_shapes = self.input_shapes
         b_set.input_shapes = self.input_shapes
 
@@ -329,7 +339,7 @@ class BaseDataset(metaclass=MetaDataset):
         if set(a_set.batch_keys) is set(b_set.batch_keys):
             raise KeyError("dataset can not merge, key does not match")
 
-        new_set = a_set.__class__()
+        new_set = self._clone()
         for key in a_set.batch_keys:
             concated = np.concatenate((a_set.data[key], b_set.data[key]), axis=0)
             new_set.add_data(key, concated)
@@ -383,10 +393,14 @@ class BaseDataset(metaclass=MetaDataset):
 
         self.data[sort_key] = np.array(sorted(self.data[sort_key]))
 
+    def _clone(self):
+        obj = self.__class__(self.verbose, self.logger)
+        return obj
+
 
 class DatasetCollection:
     def __init__(self):
-        self.logger = StdoutOnlyLogger(self.__class__.__name__)
+        self.logger = Logger(self.__class__.__name__)
         self.log = self.logger.get_log()
 
         self.set = {}
