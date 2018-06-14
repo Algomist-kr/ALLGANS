@@ -1,6 +1,7 @@
 import codecs
 import time
 
+from util.Logger import Logger, pprint_logger
 from util.misc_util import log_error_trace
 
 
@@ -113,4 +114,21 @@ def deco_timeit(func):
         return ret
 
     wrapper.__name__ = func.__name__
+    return wrapper
+
+
+def deco_save_log(func):
+    def wrapper(*args, **kwargs):
+        logger = Logger(func.__name__, level='INFO')
+        print = logger.info
+        pprint = pprint_logger(print)
+        func_name = func.__name__
+
+        print('#' * 80)
+        print(f'begin {func_name}')
+        ret = func(print, pprint, *args, **kwargs)
+        print(f'end   {func_name}')
+        print('#' * 80)
+        return ret
+
     return wrapper
