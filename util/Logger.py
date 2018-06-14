@@ -95,6 +95,7 @@ class Logger:
         self._warn = deco_args_to_str(getattr(self.logger, 'warn'))
         self._info = deco_args_to_str(getattr(self.logger, 'info'))
         self._debug = deco_args_to_str(getattr(self.logger, 'debug'))
+        self._critical = deco_args_to_str(getattr(self.logger, 'critical'))
 
     def __repr__(self):
         return self.__class__.__name__
@@ -134,6 +135,9 @@ class Logger:
 
     def debug(self, *args, **kwargs):
         self._debug(*args, **kwargs)
+
+    def critical(self, *args, **kwargs):
+        self._critical(*args, **kwargs)
 
 
 class StdoutOnlyLogger(Logger):
