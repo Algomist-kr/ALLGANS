@@ -54,7 +54,8 @@ class Logger:
     STDOUT_LOGGER_FORMAT = '%(asctime)s> %(message)s'
     EMPTY_FORMAT = ""
 
-    def __init__(self, name, path=None, file_name=None, level='INFO', with_file=True, empty_stdout_format=True):
+    def __init__(self, name, path=None, file_name=None, level='INFO', with_file=True, empty_stdout_format=True,
+                 print_start_msg=True):
         """create logger
 
         :param name:name of logger
@@ -98,11 +99,11 @@ class Logger:
         self._debug = deco_args_to_str(getattr(self.logger, 'debug'))
         self._critical = deco_args_to_str(getattr(self.logger, 'critical'))
 
-        self.logger.debug('')
-        self.logger.debug('')
-        self.logger.debug(f'#' * 80)
-        self.logger.debug(f'start logger {name}')
-        self.logger.debug(f'#' * 80)
+        if print_start_msg:
+            self.logger.debug('')
+            self.logger.debug(f'#' * 80)
+            self.logger.debug(f'start logger {name}')
+            self.logger.debug(f'#' * 80)
 
     def __repr__(self):
         return self.__class__.__name__
