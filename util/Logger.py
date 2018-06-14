@@ -54,7 +54,7 @@ class Logger:
     PRINT_LOGGER_FORMAT = '%(asctime)s> %(message)s'
     NO_FORMAT = ""
 
-    def __init__(self, name, path=None, file_name=None, level=logging.INFO, with_file=True, no_format=True):
+    def __init__(self, name, path=None, file_name=None, level='DEBUG', with_file=True, no_format=True):
         """create logger
 
         :param name:name of logger
@@ -65,7 +65,7 @@ class Logger:
         if std_only is True, log message print only stdout not in logfile
         """
         self.logger = logging.getLogger(name + time_stamp())
-        self.logger.setLevel(level)
+        self.logger.setLevel('DEBUG')
 
         self.file_handler = None
         if with_file:
@@ -77,6 +77,7 @@ class Logger:
             check_path(path)
             self.file_handler = logging.FileHandler(os.path.join(path, file_name))
             self.file_handler.setFormatter(logging.Formatter(self.FILE_LOGGER_FORMAT))
+            self.file_handler.setLevel('DEBUG')
             self.logger.addHandler(self.file_handler)
 
         if no_format:
@@ -86,6 +87,7 @@ class Logger:
         formatter = logging.Formatter(format_)
         self.stream_handler = logging.StreamHandler()
         self.stream_handler.setFormatter(formatter)
+        self.stream_handler.setLevel(level)
         self.logger.addHandler(self.stream_handler)
 
         self._fatal = deco_args_to_str(getattr(self.logger, 'fatal'))
@@ -135,11 +137,11 @@ class Logger:
 
 
 class StdoutOnlyLogger(Logger):
-    def __init__(self, name=None):
+    def __init__(self, name=None, level='DEBUG'):
         if name is None:
             name = self.__class__.__name__
 
-        super().__init__(name, with_file=False, no_format=True)
+        super().__init__(name, with_file=False, no_format=True, level=level)
 
 
 def pprint_logger(log_func):
