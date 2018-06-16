@@ -1,5 +1,5 @@
 from util.numpy_utils import np_imgs_NCWH_to_NHWC, np_index_to_onehot
-from data_handler.BaseDataset import BaseDataset, DatasetCollection, DownloadInfo
+from data_handler.BaseDataset import BaseDataset, BaseDatasetPack, DownloadInfo
 from glob import glob
 import numpy as np
 import os
@@ -111,7 +111,7 @@ class CIFAR10_test(BaseDataset):
         self.data['Ys'] = Y_transform(self.data['Ys'])
 
 
-class CIFAR10(DatasetCollection):
+class CIFAR10(BaseDatasetPack):
     def __init__(self, train_set=None, test_set=None, validation_set=None):
         super().__init__(train_set, test_set, validation_set)
         self.train_set = CIFAR10_train()

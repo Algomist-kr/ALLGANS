@@ -398,7 +398,7 @@ class BaseDataset(metaclass=MetaDataset):
         return obj
 
 
-class DatasetCollection:
+class BaseDatasetPack:
     def __init__(self):
         self.logger = Logger(self.__class__.__name__)
         self.log = self.logger.get_log()

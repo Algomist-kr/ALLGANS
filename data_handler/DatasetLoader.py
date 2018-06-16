@@ -1,4 +1,4 @@
-from data_handler.BaseDataset import DatasetCollection
+from data_handler.BaseDataset import BaseDatasetPack
 from env_settting import *
 from util.Logger import Logger
 from util.misc_util import *
@@ -67,7 +67,7 @@ class DatasetLoader:
         for key in module_.__dict__:
             value = module_.__dict__[key]
             try:
-                if issubclass(value, DatasetCollection):
+                if issubclass(value, BaseDatasetPack):
                     dataset = value
             except TypeError:
                 pass

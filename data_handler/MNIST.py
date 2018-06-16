@@ -1,6 +1,6 @@
 from __future__ import division
 from tensorflow.examples.tutorials.mnist import input_data
-from data_handler.BaseDataset import BaseDataset, DatasetCollection
+from data_handler.BaseDataset import BaseDataset, BaseDatasetPack
 import numpy as np
 
 Xs = 'Xs'
@@ -64,7 +64,7 @@ class MNIST_test(BaseDataset):
         self.data[Xs] = data
 
 
-class MNIST(DatasetCollection):
+class MNIST(BaseDatasetPack):
     def __init__(self):
         super().__init__()
         self.train_set = MNIST_train()

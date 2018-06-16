@@ -1,5 +1,5 @@
 from tensorflow.examples.tutorials.mnist import input_data
-from data_handler.BaseDataset import BaseDataset, DatasetCollection, DownloadInfo
+from data_handler.BaseDataset import BaseDataset, BaseDatasetPack, DownloadInfo
 import numpy as np
 
 
@@ -70,7 +70,7 @@ class Fashion_MNIST_test(BaseDataset):
         self.data['Xs'] = X_transform(self.data['Xs'])
 
 
-class Fashion_MNIST(DatasetCollection):
+class Fashion_MNIST(BaseDatasetPack):
 
     def __init__(self, train_set=None, test_set=None, validation_set=None):
         super().__init__(train_set, test_set, validation_set)

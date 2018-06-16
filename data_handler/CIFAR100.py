@@ -1,4 +1,4 @@
-from data_handler.BaseDataset import BaseDataset, DatasetCollection, DownloadInfo
+from data_handler.BaseDataset import BaseDataset, BaseDatasetPack, DownloadInfo
 from dict_keys.dataset_batch_keys import *
 import pickle
 import os
@@ -95,7 +95,7 @@ class CIFAR100_test(BaseDataset):
         self.data['Xs'] = X_transform(self.data['Xs'])
 
 
-class CIFAR100(DatasetCollection):
+class CIFAR100(BaseDatasetPack):
     def __init__(self, train_set=None, test_set=None, validation_set=None):
         super().__init__(train_set, test_set, validation_set)
         self.train_set = CIFAR100_train()
