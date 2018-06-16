@@ -4,7 +4,7 @@ from util.Logger import Logger
 from util.misc_util import *
 
 
-class DatasetLoader:
+class DatasetPackLoader:
 
     def __init__(self, root_path=LOG_PATH, verbose='INFO'):
         self.root_path = root_path

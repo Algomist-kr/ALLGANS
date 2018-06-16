@@ -2,7 +2,7 @@
 from pandas._libs.parsers import k
 
 from sklearn_like_toolkit.ClassifierPack import ClassifierPack
-from data_handler.DatasetLoader import DatasetLoader
+from data_handler.DatasetPackLoader import DatasetPackLoader
 from sklearn_like_toolkit.FoldingHardVote import FoldingHardVote
 from sklearn_like_toolkit.warpper.mlxtend_wrapper import mlxStackingCVClf, mlxStackingClf
 from util.Logger import pprint_logger, Logger

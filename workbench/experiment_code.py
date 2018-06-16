@@ -5,7 +5,7 @@
 # print(built-in function) is not good for logging
 from sklearn_like_toolkit.ClassifierPack import ClassifierPack
 
-from data_handler.DatasetLoader import DatasetLoader
+from data_handler.DatasetPackLoader import DatasetPackLoader
 from sklearn_like_toolkit.FoldingHardVote import FoldingHardVote
 from sklearn_like_toolkit.warpper.mlxtend_wrapper import mlxStackingCVClf, mlxStackingClf
 from util.Logger import StdoutOnlyLogger, pprint_logger
@@ -24,7 +24,7 @@ pprint = pprint_logger(print)
 @deco_timeit
 @deco_save_log
 def exp_stacking_metaclf(print, pprint):
-    dataset = DatasetLoader().load_dataset("titanic")
+    dataset = DatasetPackLoader().load_dataset("titanic")
     train_set, valid_set = dataset.split('train', 'train', 'valid', (7, 3))
     train_Xs, train_Ys = train_set.full_batch(['Xs', 'Ys'])
     valid_Xs, valid_Ys = valid_set.full_batch(['Xs', 'Ys'])
@@ -52,7 +52,7 @@ def exp_stacking_metaclf(print, pprint):
 @deco_timeit
 @deco_save_log
 def exp_stackingCV_metaclf(print, pprint):
-    dataset = DatasetLoader().load_dataset("titanic")
+    dataset = DatasetPackLoader().load_dataset("titanic")
     train_set, valid_set = dataset.split('train', 'train', 'valid', (7, 3))
     train_Xs, train_Ys = train_set.full_batch(['Xs', 'Ys'])
     valid_Xs, valid_Ys = valid_set.full_batch(['Xs', 'Ys'])
@@ -79,7 +79,7 @@ def exp_stackingCV_metaclf(print, pprint):
 @deco_timeit
 @deco_save_log
 def exp_titanic_statistic(print, pprint):
-    dataset = DatasetLoader().load_dataset("titanic")
+    dataset = DatasetPackLoader().load_dataset("titanic")
     train_set, valid_set = dataset.split('train', 'train', 'valid', (7, 3))
     train_Xs, train_Ys = train_set.full_batch(['Xs', 'Ys'])
     valid_Xs, valid_Ys = valid_set.full_batch(['Xs', 'Ys'])
@@ -156,7 +156,7 @@ def exp_titanic_statistic(print, pprint):
 @deco_timeit
 @deco_save_log
 def exp_titanic_id_static(print, pprint):
-    dataset = DatasetLoader().load_dataset("titanic")
+    dataset = DatasetPackLoader().load_dataset("titanic")
     dataset = dataset.set['train']
 
     ret_dict = {}

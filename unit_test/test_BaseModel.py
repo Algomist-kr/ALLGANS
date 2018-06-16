@@ -5,7 +5,7 @@ from model.sklearn_like_model.AE.VAE import VAE
 from model.sklearn_like_model.AE.DAE import DAE
 from model.sklearn_like_model.MLPClassifier import MLPClassifier
 from model.sklearn_like_model.AE.AutoEncoder import AutoEncoder
-from data_handler.DatasetLoader import DatasetLoader
+from data_handler.DatasetPackLoader import DatasetPackLoader
 import numpy as np
 
 
@@ -14,7 +14,7 @@ class test_MLPClassifier:
         self.test()
 
     def test(self):
-        dataset = DatasetLoader().load_dataset("titanic")
+        dataset = DatasetPackLoader().load_dataset("titanic")
         input_shapes = dataset.train_set.input_shapes
 
         Xs, Ys = dataset.train_set.full_batch(
@@ -65,7 +65,7 @@ class test_AE:
         self.test_titanic()
 
     def test_mnist(self):
-        dataset = DatasetLoader().load_dataset("MNIST")
+        dataset = DatasetPackLoader().load_dataset("MNIST")
         dataset = dataset.train_set
 
         model = AutoEncoder(dataset.input_shapes)
@@ -103,7 +103,7 @@ class test_AE:
         print("loss {:.4}".format(loss))
 
     def test_titanic(self):
-        dataset = DatasetLoader().load_dataset("titanic")
+        dataset = DatasetPackLoader().load_dataset("titanic")
         dataset = dataset.train_set
 
         model = AutoEncoder(dataset.input_shapes)
@@ -147,7 +147,7 @@ class test_VAE:
         self.test_titanic()
 
     def test_mnist(self):
-        dataset = DatasetLoader().load_dataset("MNIST")
+        dataset = DatasetPackLoader().load_dataset("MNIST")
         dataset = dataset.train_set
 
         model = VAE(dataset.input_shapes)
@@ -185,7 +185,7 @@ class test_VAE:
         print("loss {:.4}".format(loss))
 
     def test_titanic(self):
-        dataset = DatasetLoader().load_dataset("titanic")
+        dataset = DatasetPackLoader().load_dataset("titanic")
         dataset = dataset.train_set
 
         model = VAE(dataset.input_shapes)
@@ -230,7 +230,7 @@ class test_DAE:
 
     def test_mnist(self):
         class_ = DAE
-        dataset = DatasetLoader().load_dataset("MNIST")
+        dataset = DatasetPackLoader().load_dataset("MNIST")
         dataset = dataset.train_set
 
         model = class_(dataset.input_shapes)
@@ -270,7 +270,7 @@ class test_DAE:
     def test_titanic(self):
         class_ = DAE
 
-        dataset = DatasetLoader().load_dataset("titanic")
+        dataset = DatasetPackLoader().load_dataset("titanic")
         dataset = dataset.train_set
 
         model = class_(dataset.input_shapes)
@@ -317,7 +317,7 @@ class test_CVAE:
 
     def test_mnist(self):
         class_ = self.class_
-        dataset = DatasetLoader().load_dataset("MNIST")
+        dataset = DatasetPackLoader().load_dataset("MNIST")
         dataset = dataset.train_set
         Xs, Ys = dataset.full_batch(['Xs', 'Ys'])
         sample_X = Xs[:2]
@@ -355,7 +355,7 @@ class test_CVAE:
 
     def test_titanic(self):
         class_ = self.class_
-        dataset = DatasetLoader().load_dataset("titanic")
+        dataset = DatasetPackLoader().load_dataset("titanic")
         dataset = dataset.train_set
         Xs, Ys = dataset.full_batch(['Xs', 'Ys'])
         sample_X = Xs[:2]
@@ -401,7 +401,7 @@ class test_DVAE:
 
     def test_mnist(self):
         class_ = self.class_
-        dataset = DatasetLoader().load_dataset("MNIST")
+        dataset = DatasetPackLoader().load_dataset("MNIST")
         dataset = dataset.train_set
 
         model = class_(dataset.input_shapes)
@@ -440,7 +440,7 @@ class test_DVAE:
 
     def test_titanic(self):
         class_ = self.class_
-        dataset = DatasetLoader().load_dataset("titanic")
+        dataset = DatasetPackLoader().load_dataset("titanic")
         dataset = dataset.train_set
 
         model = class_(dataset.input_shapes)
@@ -487,7 +487,7 @@ class test_AAE:
 
     def test_mnist(self):
         class_ = self.class_
-        dataset = DatasetLoader().load_dataset("MNIST")
+        dataset = DatasetPackLoader().load_dataset("MNIST")
         dataset = dataset.train_set
         Xs, Ys = dataset.full_batch(['Xs', 'Ys'])
         sample_X = Xs[:2]
@@ -546,7 +546,7 @@ class test_AAE:
 
     def test_titanic(self):
         class_ = self.class_
-        dataset = DatasetLoader().load_dataset("titanic")
+        dataset = DatasetPackLoader().load_dataset("titanic")
         dataset = dataset.train_set
         Xs, Ys = dataset.full_batch(['Xs', 'Ys'])
         sample_X = Xs[:2]
