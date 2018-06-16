@@ -1,6 +1,7 @@
 from __future__ import division
 from tensorflow.examples.tutorials.mnist import input_data
-from data_handler.BaseDataset import BaseDataset, BaseDatasetPack
+from data_handler.BaseDataset import BaseDataset
+from data_handler.BaseDatasetPack import BaseDatasetPack
 import numpy as np
 
 Xs = 'Xs'

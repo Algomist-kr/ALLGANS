@@ -1,4 +1,5 @@
-from data_handler.BaseDataset import BaseDatasetPack, BaseDataset
+from data_handler.BaseDataset import BaseDataset
+from data_handler.BaseDatasetPack import BaseDatasetPack
 
 
 class DummyDataset(BaseDataset):

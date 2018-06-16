@@ -1,4 +1,5 @@
-from data_handler.BaseDataset import BaseDataset, BaseDatasetPack, DownloadInfo
+from data_handler.BaseDataset import BaseDataset, DownloadInfo
+from data_handler.BaseDatasetPack import BaseDatasetPack
 from dict_keys.dataset_batch_keys import *
 import pickle
 import os

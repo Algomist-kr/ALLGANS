@@ -1,6 +1,7 @@
 from __future__ import division
 from glob import glob
-from data_handler.BaseDataset import BaseDataset, DownloadInfo, BaseDatasetPack
+from data_handler.BaseDataset import BaseDataset, DownloadInfo
+from data_handler.BaseDatasetPack import BaseDatasetPack
 from dict_keys.dataset_batch_keys import *
 import _pickle as cPickle
 import os

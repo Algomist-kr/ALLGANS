@@ -1,5 +1,6 @@
 from util.numpy_utils import np_imgs_NCWH_to_NHWC, np_index_to_onehot
-from data_handler.BaseDataset import BaseDataset, BaseDatasetPack, DownloadInfo
+from data_handler.BaseDataset import BaseDataset, DownloadInfo
+from data_handler.BaseDatasetPack import BaseDatasetPack
 from glob import glob
 import numpy as np
 import os

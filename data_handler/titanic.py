@@ -2,7 +2,8 @@ from pprint import pprint
 
 from util.misc_util import path_join
 from util.numpy_utils import *
-from data_handler.BaseDataset import BaseDataset, BaseDatasetPack
+from data_handler.BaseDataset import BaseDataset
+from data_handler.BaseDatasetPack import BaseDatasetPack
 import os
 import pandas as pd
 
