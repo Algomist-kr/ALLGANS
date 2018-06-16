@@ -7,19 +7,6 @@ import os
 import sklearn.utils
 
 
-def _check_attr_is_None(attr):
-    def _check_attr_empty(f):
-        def wrapper(self, *args):
-            ret = f(self, *args)
-            if getattr(self, attr) is None:
-                raise ValueError("%s expect not None" % attr)
-            return ret
-
-        return wrapper
-
-    return _check_attr_empty
-
-
 class MetaDataset(type):
     """Metaclass for hook inherited class's function
     metaclass ref from 'https://code.i-harness.com/ko/q/11fc307'
@@ -130,15 +117,6 @@ class BaseDataset(metaclass=MetaDataset):
         :return:
         """
         return self.data[key]
-
-    def get_datas(self, keys):
-        """return list of data
-
-        :param keys: list of keys
-        :type keys: list
-        :return: list
-        """
-        return [self.data[key] for key in keys]
 
     def if_need_download(self, path):
         """check dataset is valid and if dataset is not valid download dataset
