@@ -1,6 +1,7 @@
 from __future__ import division
 from glob import glob
-from data_handler.BaseDataset import BaseDataset, DownloadInfo, DatasetCollection
+from data_handler.BaseDataset import BaseDataset, DownloadInfo
+from data_handler.BaseDatasetPack import BaseDatasetPack
 from dict_keys.dataset_batch_keys import *
 import _pickle as cPickle
 import os
@@ -53,7 +54,7 @@ class LLD_clean(BaseDataset):
         pass
 
 
-class LLD(DatasetCollection):
+class LLD(BaseDatasetPack):
 
     def __init__(self, train_set=None, test_set=None, validation_set=None):
         super().__init__(train_set, test_set, validation_set)

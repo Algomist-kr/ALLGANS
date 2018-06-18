@@ -1,11 +1,11 @@
 # usage
-from data_handler.DatasetLoader import DatasetLoader
+from data_handler.DatasetPackLoader import DatasetPackLoader
 from InstanceManger import InstanceManager
 
 # load dataset by calling DatasetLoader
 # input_shapes is for tensorflow.PlaceHolder's shape
 # need to build instanc e
-dataset, input_shapes = DatasetLoader().load_dataset("dataset_name")
+dataset, input_shapes = DatasetPackLoader().load_dataset("dataset_name")
 
 # apply to train model
 instanceManager = InstanceManager()

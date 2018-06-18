@@ -22,12 +22,12 @@ class test_clf_pack:
         os.chdir(head)
         print(os.getcwd())
 
-        from data_handler.DatasetLoader import DatasetLoader
+        from data_handler.DatasetPackLoader import DatasetPackLoader
         from sklearn_like_toolkit.ClassifierPack import ClassifierPack
 
         self.cls = ClassifierPack
 
-        dataset = DatasetLoader().load_dataset("titanic")
+        dataset = DatasetPackLoader().load_dataset("titanic")
         train_set, valid_set = dataset.split('train', 'train', 'valid', (7, 3))
         train_Xs, train_Ys = train_set.full_batch(['Xs', 'Ys'])
         valid_Xs, valid_Ys = valid_set.full_batch(['Xs', 'Ys'])

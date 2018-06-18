@@ -1,15 +1,15 @@
-from data_handler.BaseDataset import DatasetCollection
+from data_handler.BaseDatasetPack import BaseDatasetPack
 from env_settting import *
 from util.Logger import Logger
 from util.misc_util import *
 
 
-class DatasetLoader:
+class DatasetPackLoader:
 
-    def __init__(self, root_path=LOG_PATH):
+    def __init__(self, root_path=LOG_PATH, verbose='INFO'):
         self.root_path = root_path
-        self.logger = Logger(self.__class__.__name__, self.root_path)
-        self.log = self.logger.get_log()
+        self.logger = Logger(self.__class__.__name__, self.root_path, level=verbose)
+        self.log = self.logger
         self.dataset_class = {}
 
     def __repr__(self):
@@ -48,7 +48,7 @@ class DatasetLoader:
         :type dataset_name: str
         :param dataset_name:
         """
-        self.log('load %s dataset module' % dataset_name)
+        self.log.info('load %s dataset module' % dataset_name)
         paths = glob(os.path.join(DATA_HANDLER_PATH, '**', '*.py'), recursive=True)
 
         dataset_path = None
@@ -67,7 +67,7 @@ class DatasetLoader:
         for key in module_.__dict__:
             value = module_.__dict__[key]
             try:
-                if issubclass(value, DatasetCollection):
+                if issubclass(value, BaseDatasetPack):
                     dataset = value
             except TypeError:
                 pass

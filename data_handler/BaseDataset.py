@@ -1,23 +1,10 @@
-from util.Logger import StdoutOnlyLogger
+from util.Logger import Logger
 from util.misc_util import *
 import traceback
 import sys
 import numpy as np
 import os
 import sklearn.utils
-
-
-def _check_attr_is_None(attr):
-    def _check_attr_empty(f):
-        def wrapper(self, *args):
-            ret = f(self, *args)
-            if getattr(self, attr) is None:
-                raise ValueError("%s expect not None" % attr)
-            return ret
-
-        return wrapper
-
-    return _check_attr_empty
 
 
 class MetaDataset(type):
@@ -82,7 +69,7 @@ class BaseDataset(metaclass=MetaDataset):
     def downloadInfos(self):
         return []
 
-    def __init__(self):
+    def __init__(self, verbose='WARN', logger=None):
         """create dataset handler class
 
         ***bellow attrs must initiate other value after calling super()***
@@ -91,16 +78,26 @@ class BaseDataset(metaclass=MetaDataset):
             managing batch keys in dict_keys.dataset_batch_keys recommend
         """
         self.batch_keys = []
-        self.logger = StdoutOnlyLogger(self.__class__.__name__)
-        self.log = self.logger.get_log()
+
+        self.verbose = verbose
+        if logger is None:
+            self.logger = Logger(self.__class__.__name__, level=verbose)
+            self.log = self.logger
+            self.external_logger = False
+        else:
+            self.logger = logger
+            self.log = self.logger
+            self.external_logger = True
+
         self.data = {}
         self.cursor = 0
         self.data_size = 0
         self.input_shapes = None
 
     def __del__(self):
-        del self.logger
-        del self.log
+        if not self.external_logger:
+            del self.logger
+            del self.log
 
     def __repr__(self):
         return self.__class__.__name__
@@ -120,15 +117,6 @@ class BaseDataset(metaclass=MetaDataset):
         :return:
         """
         return self.data[key]
-
-    def get_datas(self, keys):
-        """return list of data
-
-        :param keys: list of keys
-        :type keys: list
-        :return: list
-        """
-        return [self.data[key] for key in keys]
 
     def if_need_download(self, path):
         """check dataset is valid and if dataset is not valid download dataset
@@ -172,11 +160,11 @@ class BaseDataset(metaclass=MetaDataset):
         head, _ = os.path.split(path)
         download_file = os.path.join(path, downloadInfos.download_file_name)
 
-        self.log('download %s at %s ' % (downloadInfos.download_file_name, download_file))
+        self.log.info('download %s at %s ' % (downloadInfos.download_file_name, download_file))
         download_from_url(downloadInfos.url, download_file)
 
         if downloadInfos.is_zipped:
-            self.log("extract %s at %s" % (downloadInfos.download_file_name, path))
+            self.log.info("extract %s at %s" % (downloadInfos.download_file_name, path))
             extract_file(download_file, path)
 
     def after_load(self, limit=None):
@@ -196,20 +184,20 @@ class BaseDataset(metaclass=MetaDataset):
 
         for key in self.data:
             self.data_size = max(len(self.data[key]), self.data_size)
-            self.log("batch data '%s' %d item(s) loaded" % (key, len(self.data[key])))
+            self.log.debug("batch data '%s' %d item(s) loaded" % (key, len(self.data[key])))
 
         self.data['id_'] = np.array([i for i in range(1, self.data_size + 1)])
 
-        self.log('%s fully loaded' % self.__str__())
+        self.log.debug('%s fully loaded' % self.__str__())
 
-        self.log('%s preprocess end' % self.__str__())
+        self.log.debug('%s preprocess end' % self.__str__())
         self.preprocess()
 
-        self.log("generate input_shapes")
+        self.log.debug("generate input_shapes")
         self.input_shapes = {}
         for key in self.data:
             self.input_shapes[key] = list(self.data[key].shape[1:])
-            self.log("key=%s, shape=%s" % (key, self.input_shapes[key]))
+            self.log.debug("key=%s, shape=%s" % (key, self.input_shapes[key]))
 
     def load(self, path, limit=None):
         """load dataset from file should implement
@@ -305,8 +293,8 @@ class BaseDataset(metaclass=MetaDataset):
 
     def split(self, ratio, shuffle=False):
         """return split part of dataset"""
-        a_set = self.__class__()
-        b_set = self.__class__()
+        a_set = self._clone()
+        b_set = self._clone()
         a_set.input_shapes = self.input_shapes
         b_set.input_shapes = self.input_shapes
 
@@ -329,7 +317,7 @@ class BaseDataset(metaclass=MetaDataset):
         if set(a_set.batch_keys) is set(b_set.batch_keys):
             raise KeyError("dataset can not merge, key does not match")
 
-        new_set = a_set.__class__()
+        new_set = self._clone()
         for key in a_set.batch_keys:
             concated = np.concatenate((a_set.data[key], b_set.data[key]), axis=0)
             new_set.add_data(key, concated)
@@ -383,52 +371,6 @@ class BaseDataset(metaclass=MetaDataset):
 
         self.data[sort_key] = np.array(sorted(self.data[sort_key]))
 
-
-class DatasetCollection:
-    def __init__(self):
-        self.logger = StdoutOnlyLogger(self.__class__.__name__)
-        self.log = self.logger.get_log()
-
-        self.set = {}
-
-    def load(self, path, **kwargs):
-        for k in self.set:
-            self.set[k].load(path, **kwargs)
-
-    def shuffle(self):
-        for key in self.set:
-            self.set[key].shuffle()
-
-    def split(self, from_key, a_key, b_key, rate):
-        from_set = self.set[from_key]
-        self.set.pop(from_key)
-
-        a_set, b_set = from_set.split(rate)
-        self.set[a_key] = a_set
-        self.set[b_key] = b_set
-        return a_set, b_set
-
-    def merge_shuffle(self, a_key, b_key, rate):
-        a_set = self.set[a_key]
-        b_set = self.set[b_key]
-
-        merge_set = a_set.merge(a_set, b_set)
-        merge_set.shuffle()
-        a_set, b_set = merge_set.split(rate, shuffle=True)
-
-        self.set[a_key] = a_set
-        self.set[b_key] = b_set
-        return a_set, b_set
-
-    def merge(self, a_key, b_key, merge_set_key):
-        a_set = self.set[a_key]
-        b_set = self.set[b_key]
-        self.set.pop(a_key)
-        self.set.pop(b_key)
-
-        merge_set = a_set.merge(a_set, b_set)
-        self.set[merge_set_key] = merge_set
-
-    def sort(self, sort_key=None):
-        for key in self.set:
-            self.set[key].sort(sort_key)
+    def _clone(self):
+        obj = self.__class__(self.verbose, self.logger)
+        return obj

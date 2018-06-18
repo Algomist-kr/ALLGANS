@@ -187,8 +187,10 @@ class mlxStackingCVClf(_StackingCVClassifier, _clf_metric, _Reformat_Ys):
 
     def __init__(self, classifiers, meta_classifier, use_probas=False, cv=2, use_features_in_secondary=False,
                  stratify=True, shuffle=True, verbose=0, store_train_meta_features=False, use_clones=True):
-        super().__init__(classifiers, meta_classifier, use_probas, cv, use_features_in_secondary, stratify, shuffle,
-                         verbose, store_train_meta_features, use_clones)
+        _StackingCVClassifier.__init__(self, classifiers, meta_classifier, use_probas, cv, use_features_in_secondary,
+                                       stratify, shuffle,
+                                       verbose, store_train_meta_features, use_clones)
+        _clf_metric.__init__(self)
 
     def fit(self, X, y, groups=None):
         y = reformat_np_arr(y, self.model_Ys_type)

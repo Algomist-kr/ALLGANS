@@ -2,7 +2,8 @@ from pprint import pprint
 
 from util.misc_util import path_join
 from util.numpy_utils import *
-from data_handler.BaseDataset import BaseDataset, DatasetCollection
+from data_handler.BaseDataset import BaseDataset
+from data_handler.BaseDatasetPack import BaseDatasetPack
 import os
 import pandas as pd
 
@@ -203,7 +204,7 @@ class titanic_test(BaseDataset):
         self.add_data(Xs, data)
 
 
-class titanic(DatasetCollection):
+class titanic(BaseDatasetPack):
     LABEL_SIZE = 2
 
     def __init__(self):
